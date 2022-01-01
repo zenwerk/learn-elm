@@ -46,7 +46,7 @@ baseUrl =
 initialModel : Model
 -- START:initialModel
 initialModel =
-    { photo = Nothing }
+    { photo = Nothing } -- 初期状態は写真データがない
 -- END:initialModel
 
 
@@ -144,7 +144,7 @@ viewFeed maybePhoto =
 
         Nothing ->
             div [ class "loading-feed" ]
-                [ text "Loading Feed..." ]
+                [ text "Loading Feed..." ] -- 読み込み中だとメッセージを出しておく
 -- END:viewFeed
 
 
@@ -222,7 +222,7 @@ update msg model =
             )
 
 -- START:update
-        LoadFeed (Ok photo) ->
+        LoadFeed (Ok photo) -> -- パターンマッチで分割代入
             ( { model | photo = Just photo }
             , Cmd.none
             )
