@@ -6,7 +6,7 @@ import Html.Attributes exposing (class, src)
 import Html.Events exposing (onClick)
 
 
--- START:model.alias
+-- START: 型エイリアスの定義
 type alias Model =
     { url : String
     , caption : String
