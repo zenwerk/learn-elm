@@ -87,6 +87,7 @@ update msg model =
 
 
 -- START:main
+-- Elm におけるプログラムとは、モデル、ビュー関数、アップデート関数を結びつけるもの
 main : Program () { url : String, caption : String, liked : Bool } Msg
 main =
     Browser.sandbox
