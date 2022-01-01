@@ -312,8 +312,9 @@ update msg model =
         -- START:update
         FlushStreamQueue ->
             ( { model
+                --  Maybe.map が model.feed が Just のとき `model.streamQueue ++ model.feed` が実行される map ということ
                 | feed = Maybe.map ((++) model.streamQueue) model.feed
-                , streamQueue = []
+                , streamQueue = [] -- feed に追加したら Queue を空にする
               }
             , Cmd.none
             )
