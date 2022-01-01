@@ -80,7 +80,7 @@ viewLoveButton photo =
             [ class "fa fa-2x"
             , class buttonClass
             -- START:viewLoveButton
-            , onClick (ToggleLike photo.id)
+            , onClick (ToggleLike photo.id) -- id を追加
             -- END:viewLoveButton
             ]
             []
@@ -118,7 +118,7 @@ viewComments photo =
                 [ type_ "text"
                 , placeholder "Add a comment..."
                 , value photo.newComment
-                , onInput (UpdateComment photo.id)
+                , onInput (UpdateComment photo.id) -- id を追加
         -- END:viewComments
                 ]
                 []
@@ -163,6 +163,7 @@ view model =
 
 
 -- START:msg
+-- 複数写真に対応するため Id を追加
 type Msg
     = ToggleLike Id
     | UpdateComment Id String
@@ -214,6 +215,7 @@ updatePhotoById updatePhoto id feed =
 
 
 -- START:updateFeed
+-- updateFeed : 更新関数 -> ID -> 更新前Feed -> 更新後Feed
 updateFeed : (Photo -> Photo) -> Id -> Maybe Feed -> Maybe Feed
 updateFeed updatePhoto id maybeFeed =
     Maybe.map (updatePhotoById updatePhoto id) maybeFeed
