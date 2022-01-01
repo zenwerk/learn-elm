@@ -30,7 +30,7 @@ type alias Feed =
 -- START:model.alias
 type alias Model =
     { feed : Maybe Feed
-    , error : Maybe Http.Error
+    , error : Maybe Http.Error -- エラー内容を保持する
     }
 -- END:model.alias
 
@@ -173,13 +173,13 @@ errorMessage error =
 -- START:viewContent
 viewContent : Model -> Html Msg
 viewContent model =
-    case model.error of
+    case model.error of -- エラーがあるかどうか確認
         Just error ->
             div [ class "feed-error" ]
                 [ text (errorMessage error) ]
 
         Nothing ->
-            viewFeed model.feed
+            viewFeed model.feed -- エラーがなければコンテンツを表示
 -- END:viewContent
 
 
@@ -190,7 +190,7 @@ view model =
             [ h1 [] [ text "Picshare" ] ]
         , div [ class "content-flow" ]
             -- START:view
-            [ viewContent model ]
+            [ viewContent model ] -- エラー処理を含んだ関数に置き換える
             -- END:view
         ]
 
@@ -276,7 +276,7 @@ update msg model =
             , Cmd.none
             )
 
-        -- START:update
+        -- START:update エラーを受け付けるようにパターンを追加する
         LoadFeed (Err error) ->
             ( { model | error = Just error }, Cmd.none )
         -- END:update
