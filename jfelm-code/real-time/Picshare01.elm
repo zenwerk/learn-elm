@@ -25,13 +25,13 @@ type alias Photo =
 
 -- START:feed.alias
 type alias Feed =
-    List Photo
+    List Photo -- 複数の写真を扱えるようにする
 -- END:feed.alias
 
 
 -- START:model.alias
 type alias Model =
-    { feed : Maybe Feed }
+    { feed : Maybe Feed } -- 複数写真モデルに更新
 -- END:model.alias
 
 
@@ -68,7 +68,7 @@ fetchFeed : Cmd Msg
 fetchFeed =
     Http.get
         { url = baseUrl ++ "feed"
-        , expect = Http.expectJson LoadFeed (list photoDecoder)
+        , expect = Http.expectJson LoadFeed (list photoDecoder) -- List photo をデコード
         }
 -- END:fetchFeed
 
@@ -179,7 +179,7 @@ type Msg
     | UpdateComment String
     | SaveComment
     -- START:msg
-    | LoadFeed (Result Http.Error Feed)
+    | LoadFeed (Result Http.Error Feed) -- 複数読み込みモデルに対応
     -- END:msg
 
 
