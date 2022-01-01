@@ -57,6 +57,7 @@ initialModel =
 
 
 -- START:init
+-- () -> (初期状態, 初期実行コマンド)
 init : () -> ( Model, Cmd Msg )
 init () =
     ( initialModel, fetchFeed )
@@ -64,10 +65,18 @@ init () =
 
 
 -- START:fetchFeed
+-- Cmd(コマンド型)は外界とのやり取りが発生し副作用が発生する処理に対して適用する
+-- コマンドは、TEAアプリに対して送信され、TEAアプリが外部ウェブAPIに対して実際のリクエストを行う
+-- コマンドは実行結果の Msg を update 関数に渡し状態を更新する
 fetchFeed : Cmd Msg
 fetchFeed =
+    -- Http.get : { expect : Http.Expect msg, url : String } -> Cmd msg
+    -- msg はコマンドによって生成しうるメッセージの型を表す
+    -- fetchFeed の場合 msg は LoadFeed を返す
     Http.get
         { url = baseUrl ++ "feed/1"
+          -- リクエストしたデータをどのように受け取りたいか
+          -- photoDecoder の結果を LadFeedコンストラクタでラップして返す
         , expect = Http.expectJson LoadFeed photoDecoder
         }
 -- END:fetchFeed
@@ -182,12 +191,13 @@ saveNewComment model =
 
 
 -- START:update
+-- Browser.element の初期値に合わせて (状態, コマンド) のタプルを返す
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ToggleLike ->
-            ( { model | liked = not model.liked }
-            , Cmd.none
+            ( { model | liked = not model.liked } -- 更新された状態
+            , Cmd.none -- その後実行するコマンド
             )
 
         UpdateComment comment ->
@@ -215,8 +225,10 @@ subscriptions model =
 main : Program () Model Msg
 -- START:main
 main =
+    -- TEAアプリにコマンドを追加する場合は Browser.element を使う
+    -- Browser.element はアプリケーションをページに埋め込む際に JavaScript のコードから初期データを渡せる
     Browser.element
-        { init = init
+        { init = init -- モデルとコマンドの2つの初期状態が必要
         , view = view
         , update = update
         , subscriptions = subscriptions
