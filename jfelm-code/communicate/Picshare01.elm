@@ -14,7 +14,8 @@ import Json.Decode.Pipeline exposing (hardcoded, required)
 type alias Id =
     Int
 
-
+-- 型エイリアスを定義すると以下のようなコンストラクターが暗黙定義される
+-- photo id url caption liked comments newComment = {id = id, url = url, caption = caption, liked = liked, comments = comments, newComment = newComment}
 type alias Photo =
     { id : Id
     , url : String
@@ -39,7 +40,7 @@ photoDecoder =
         |> required "caption" string
         |> required "liked" bool
         |> required "comments" (list string)
-        |> hardcoded ""
+        |> hardcoded "" -- newComment に空文字列を渡す
 -- END:photoDecoder
 
 
