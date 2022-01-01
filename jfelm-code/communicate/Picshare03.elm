@@ -25,7 +25,7 @@ type alias Photo =
 
 -- START:model.alias
 type alias Model =
-    { photo : Maybe Photo
+    { photo : Maybe Photo -- Maybe でオプショナル扱い, null 安全確保
     }
 -- END:model.alias
 
@@ -50,7 +50,7 @@ initialModel : Model
 -- START:initialModel
 initialModel =
     { photo =
-        Just
+        Just -- Maybe 適用に合わせて Just コンストラクタでくるむ
             { id = 1
             , url = baseUrl ++ "1.jpg"
             , caption = "Surfing"
@@ -155,7 +155,7 @@ viewDetailedPhoto photo =
 
 -- START:viewFeed
 viewFeed : Maybe Photo -> Html Msg
-viewFeed maybePhoto =
+viewFeed maybePhoto = -- Maybe型に対応する
     case maybePhoto of
         Just photo ->
             viewDetailedPhoto photo
@@ -216,8 +216,10 @@ updateComment comment photo =
 
 
 -- START:updateFeed
+-- この関数が Maybe のチェックと受け取った更新関数を適用する窓口になる(補助関数的な感じ)
 updateFeed : (Photo -> Photo) -> Maybe Photo -> Maybe Photo
 updateFeed updatePhoto maybePhoto =
+    -- Maybe を受け取って Maybe を返す map
     Maybe.map updatePhoto maybePhoto
 -- END:updateFeed
 
