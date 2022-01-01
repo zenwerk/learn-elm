@@ -7,7 +7,7 @@ import Html.Events exposing (onClick, onInput, onSubmit)
 import Http
 import Json.Decode exposing (Decoder, bool, int, list, string, succeed)
 import Json.Decode.Pipeline exposing (hardcoded, required)
--- START:imports
+-- START:imports WebSocketのportをimport
 import WebSocket
 -- END:imports
 
@@ -201,7 +201,7 @@ type Msg
     | SaveComment Id
     | LoadFeed (Result Http.Error Feed)
     -- START:msg
-    | LoadStreamPhoto String
+    | LoadStreamPhoto String -- WSからのデータを文字列で取得
     -- END:msg
 
 
@@ -277,27 +277,27 @@ update msg model =
         -- START:update.LoadFeed
         LoadFeed (Ok feed) ->
             ( { model | feed = Just feed }
-            , WebSocket.listen wsUrl
+            , WebSocket.listen wsUrl -- Cmd.none から port関数listenを呼び出す -> Cmd msg を返す
             )
         -- END:update.LoadFeed
 
         LoadFeed (Err error) ->
             ( { model | error = Just error }, Cmd.none )
 
-        -- START:update.LoadStreamPhoto
+        -- START:update.LoadStreamPhoto -- WSから受け取った情報を処理するパターン
         LoadStreamPhoto data ->
             let
                 _ =
-                    Debug.log "WebSocket data" data
+                    Debug.log "WebSocket data" data -- まずは Debugプリント
             in
             ( model, Cmd.none )
         -- END:update.LoadStreamPhoto
 
 
 subscriptions : Model -> Sub Msg
--- START:subscriptions
+-- START:subscriptions -- 文字列データを受け取るコンストラクタは String -> msg な関数であることを思い出せ
 subscriptions model =
-    WebSocket.receive LoadStreamPhoto
+    WebSocket.receive LoadStreamPhoto -- WSからのストリームをサブスクし、受け取るときは LoadStreamPhoto コンストラクタを返す
 -- END:subscriptions
 
 
