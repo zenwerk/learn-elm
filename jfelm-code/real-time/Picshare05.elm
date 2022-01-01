@@ -35,7 +35,7 @@ type alias Feed =
 type alias Model =
     { feed : Maybe Feed
     , error : Maybe Http.Error
-    , streamQueue : Feed
+    , streamQueue : Feed -- WSから受け取ったデータを貯めておくQueue
     }
 -- END:model.alias
 
@@ -66,7 +66,7 @@ initialModel : Model
 initialModel =
     { feed = Nothing
     , error = Nothing
-    , streamQueue = []
+    , streamQueue = [] -- 追加した初期状態
     }
 -- END:initialModel
 
@@ -179,7 +179,7 @@ errorMessage error =
             Please try again later."""
 
 
--- START:viewStreamNotification
+-- START:viewStreamNotification -- 新規写真があることを通知するバナー表示
 viewStreamNotification : Feed -> Html Msg
 viewStreamNotification queue =
     case queue of
@@ -210,7 +210,7 @@ viewContent model =
         -- START:viewContent
         Nothing ->
             div []
-                [ viewStreamNotification model.streamQueue
+                [ viewStreamNotification model.streamQueue -- WS Queue の処理を追加
                 , viewFeed model.feed
                 ]
         -- END:viewContent
@@ -232,8 +232,8 @@ type Msg
     | SaveComment Id
     | LoadFeed (Result Http.Error Feed)
     -- START:msg
-    | LoadStreamPhoto (Result Json.Decode.Error Photo)
-    | FlushStreamQueue
+    | LoadStreamPhoto (Result Json.Decode.Error Photo) -- JSON のデコード結果を受け付けるように更新
+    | FlushStreamQueue -- Queueの中身を取り出して反映させる処理
     -- END:msg
 
 
@@ -315,12 +315,13 @@ update msg model =
             ( { model | error = Just error }, Cmd.none )
 
         -- START:update.LoadStreamPhoto
-        LoadStreamPhoto (Ok photo) ->
+        LoadStreamPhoto (Ok photo) -> -- WSから受け取った写真データを追加する
+            -- `::` は cons 演算子, 先頭に追加
             ( { model | streamQueue = photo :: model.streamQueue }
             , Cmd.none
             )
 
-        LoadStreamPhoto (Err _) ->
+        LoadStreamPhoto (Err _) -> -- とりあえずエラーは無視する
             ( model, Cmd.none )
         -- END:update.LoadStreamPhoto
 
@@ -332,9 +333,13 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 -- START:subscriptions
+-- WS から受け取った生JSONは Decode 処理を明示的にコーディングしておく必要がある
 subscriptions model =
     WebSocket.receive
+        -- `<<` は２つの関数を１つに合成する、左合成演算子
+        -- 片方の関数の返り値を次の関数の引数として数珠つなぎできる
         (LoadStreamPhoto << decodeString photoDecoder)
+        -- これは WebSocket.receive (\json -> LoadStreamPhoto (decodeString photoDecoder json)) と等価
 -- END:subscriptions
 
 
