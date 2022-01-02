@@ -31,11 +31,11 @@ import Set exposing (Set)
 
 ---- MODEL ----
 
-
+-- サラダの基礎となるもの
 type Base
-    = Lettuce
-    | Spinach
-    | SpringMix
+    = Lettuce -- レタス
+    | Spinach -- ほうれん草
+    | SpringMix -- 新芽の盛り合わせ
 
 
 baseToString : Base -> String
@@ -51,12 +51,14 @@ baseToString base =
             "Spring Mix"
 
 
+-- トッピング
 type Topping
     = Tomatoes
     | Cucumbers
     | Onions
 
 
+-- Set に保存するため comparable な String に変換するための関数
 toppingToString : Topping -> String
 toppingToString topping =
     case topping of
@@ -70,6 +72,7 @@ toppingToString topping =
             "Onions"
 
 
+-- ドレッシング
 type Dressing
     = NoDressing
     | Italian
@@ -186,12 +189,14 @@ isValid model =
 view : Model -> Html Msg
 view model =
     div []
+        -- ヘッダ部
         [ h1 [ class "header" ]
             [ text "Saladise - Build a Salad" ]
         , div [ class "content" ]
+            -- 送信中のとき
             [ if model.sending then
                 div [ class "sending" ] [ text "Sending Order..." ]
-
+            -- サラダ構成指定中のとき
               else if model.building then
                 div []
                     [ case model.error of
@@ -349,7 +354,7 @@ view model =
                             [ text "Send Order" ]
                         ]
                     ]
-
+              -- それ以外は送信結果画面
               else
                 div [ class "confirmation" ]
                     [ h2 [] [ text "Woo hoo!" ]
