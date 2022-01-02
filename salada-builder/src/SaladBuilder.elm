@@ -218,7 +218,7 @@ viewBuild model =
                     [ type_ "radio"
                     , name "base"
                     , checked (model.base == Lettuce)
-                    , onClick SelectLettuce
+                    , onClick (SetBase Lettuce)
                     ]
                     []
                 , text "Lettuce"
@@ -228,7 +228,7 @@ viewBuild model =
                     [ type_ "radio"
                     , name "base"
                     , checked (model.base == Spinach)
-                    , onClick SelectSpinach
+                    , onClick (SetBase Spinach)
                     ]
                     []
                 , text "Spinach"
@@ -238,7 +238,7 @@ viewBuild model =
                     [ type_ "radio"
                     , name "base"
                     , checked (model.base == SpringMix)
-                    , onClick SelectSpringMix
+                    , onClick (SetBase SpringMix)
                     ]
                     []
                 , text "Spring Mix"
@@ -250,7 +250,7 @@ viewBuild model =
                 [ input
                     [ type_ "checkbox"
                     , checked (Set.member (toppingToString Tomatoes) model.toppings)
-                    , onCheck ToggleTomatoes
+                    , onCheck (ToggleTopping Tomatoes)
                     ]
                     []
                 , text "Tomatoes"
@@ -259,7 +259,7 @@ viewBuild model =
                 [ input
                     [ type_ "checkbox"
                     , checked (Set.member (toppingToString Cucumbers) model.toppings)
-                    , onCheck ToggleCucumbers
+                    , onCheck (ToggleTopping Cucumbers)
                     ]
                     []
                 , text "Cucumbers"
@@ -268,7 +268,7 @@ viewBuild model =
                 [ input
                     [ type_ "checkbox"
                     , checked (Set.member (toppingToString Onions) model.toppings)
-                    , onCheck ToggleOnions
+                    , onCheck (ToggleTopping Onions)
                     ]
                     []
                 , text "Onions"
@@ -281,7 +281,7 @@ viewBuild model =
                     [ type_ "radio"
                     , name "dressing"
                     , checked (model.dressing == NoDressing)
-                    , onClick SelectNoDressing
+                    , onClick (SetDressing NoDressing)
                     ]
                     []
                 , text "None"
@@ -291,7 +291,7 @@ viewBuild model =
                     [ type_ "radio"
                     , name "dressing"
                     , checked (model.dressing == Italian)
-                    , onClick SelectItalian
+                    , onClick (SetDressing Italian)
                     ]
                     []
                 , text "Italian"
@@ -301,7 +301,7 @@ viewBuild model =
                     [ type_ "radio"
                     , name "dressing"
                     , checked (model.dressing == RaspberryVinaigrette)
-                    , onClick SelectRaspberryVinaigrette
+                    , onClick (SetDressing RaspberryVinaigrette)
                     ]
                     []
                 , text "Raspberry Vinaigrette"
@@ -311,7 +311,7 @@ viewBuild model =
                     [ type_ "radio"
                     , name "dressing"
                     , checked (model.dressing == OilVinegar)
-                    , onClick SelectOilVinegar
+                    , onClick (SetDressing OilVinegar)
                     ]
                     []
                 , text "Oil and Vinegar"
@@ -430,16 +430,9 @@ view model =
 
 
 type Msg
-    = SelectLettuce
-    | SelectSpinach
-    | SelectSpringMix
-    | ToggleTomatoes Bool
-    | ToggleCucumbers Bool
-    | ToggleOnions Bool
-    | SelectNoDressing
-    | SelectItalian
-    | SelectRaspberryVinaigrette
-    | SelectOilVinegar
+    = SetBase Base
+    | ToggleTopping Topping Bool
+    | SetDressing Dressing
     | SetName String
     | SetEmail String
     | SetPhone String
@@ -476,71 +469,25 @@ send model =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        SelectLettuce ->
-            ( { model | base = Lettuce }
+        SetBase base ->
+            ( { model | base = base }
             , Cmd.none
             )
 
-        SelectSpinach ->
-            ( { model | base = Spinach }
+        ToggleTopping topping add ->
+            let
+                updater =
+                    if add then
+                        Set.insert
+                    else
+                        Set.remove
+            in
+            ( { model | toppings = updater (toppingToString topping) model.toppings }
             , Cmd.none
             )
 
-        SelectSpringMix ->
-            ( { model | base = SpringMix }
-            , Cmd.none
-            )
-
-        ToggleTomatoes add ->
-            if add then
-                ( { model | toppings = Set.insert (toppingToString Tomatoes) model.toppings }
-                , Cmd.none
-                )
-
-            else
-                ( { model | toppings = Set.remove (toppingToString Tomatoes) model.toppings }
-                , Cmd.none
-                )
-
-        ToggleCucumbers add ->
-            if add then
-                ( { model | toppings = Set.insert (toppingToString Cucumbers) model.toppings }
-                , Cmd.none
-                )
-
-            else
-                ( { model | toppings = Set.remove (toppingToString Cucumbers) model.toppings }
-                , Cmd.none
-                )
-
-        ToggleOnions add ->
-            if add then
-                ( { model | toppings = Set.insert (toppingToString Onions) model.toppings }
-                , Cmd.none
-                )
-
-            else
-                ( { model | toppings = Set.remove (toppingToString Onions) model.toppings }
-                , Cmd.none
-                )
-
-        SelectNoDressing ->
-            ( { model | dressing = NoDressing }
-            , Cmd.none
-            )
-
-        SelectItalian ->
-            ( { model | dressing = Italian }
-            , Cmd.none
-            )
-
-        SelectRaspberryVinaigrette ->
-            ( { model | dressing = RaspberryVinaigrette }
-            , Cmd.none
-            )
-
-        SelectOilVinegar ->
-            ( { model | dressing = OilVinegar }
+        SetDressing dressing ->
+            ( { model | dressing = dressing }
             , Cmd.none
             )
 
