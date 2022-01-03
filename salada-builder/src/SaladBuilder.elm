@@ -233,6 +233,85 @@ viewSection heading children =
         (h2 [] [ text heading ] :: children)
 
 
+-- トッピング選択肢
+viewToppingOption : String -> Topping -> Set String -> Html Msg
+viewToppingOption toppingLabel topping toppings =
+    label [ class "section-option" ]
+        [ input
+            [ type_ "checkbox"
+            , checked (Set.member (toppingToString topping) toppings)
+            {- ToggleTopping は Topping, bool を引数に取るコンストラクタ関数
+                bool 型は onCheck 時にElmが渡してくれる
+
+             << で関数合成しているのは、以下のような処理を完結に記述するため
+             toggleToppingMsg : Topping -> Bool -> Msg
+             toggleToppingMsg topping add =
+                SaladMsg (ToggleTopping topping add)
+            -}
+            , onCheck (SaladMsg << ToggleTopping topping)
+            ]
+            []
+        , text toppingLabel
+        ]
+
+
+-- トッピング選択まとめ
+viewSelectToppings : Set String -> Html Msg
+viewSelectToppings toppings =
+    div []
+        [ viewToppingOption "Tomatos" Tomatoes toppings
+        , viewToppingOption "Cucumbers" Cucumbers toppings
+        , viewToppingOption "Onions" Onions toppings
+        ]
+
+
+-- ラジオボタン選択肢
+viewRadioOption : String -> value -> (value -> msg) -> String -> value -> Html msg
+viewRadioOption radioName selectedValue tagger optionLabel value =
+    label [ class "section-option" ]
+        [ input
+            [ type_ "radio"
+            , name radioName
+            , checked (value == selectedValue)
+            , onClick (tagger value)
+            ]
+            []
+        , text optionLabel
+        ]
+
+
+
+-- 現在選択されている値をcurrentBase引数として受け取る
+viewSelectBase : Base -> Html Msg
+viewSelectBase currentBase =
+    let
+        viewBaseOption =
+            {-
+                "base" がラジオボタン名
+                currentBase が selectedValue
+                (SaladMsg << SetBase) が tagger
+            -}
+            viewRadioOption "base" currentBase (SaladMsg << SetBase)
+    in
+    div []
+        [ viewBaseOption "Lettase" Lettuce
+        , viewBaseOption "Spinach" Spinach
+        , viewBaseOption "Spring Mix" SpringMix
+        ]
+
+
+viewSelectDressing : Dressing -> Html Msg
+viewSelectDressing currentDressing =
+    let
+        viewDressingOption =
+            viewRadioOption "dressing" currentDressing (SaladMsg << SetDressing)
+    in
+    div []
+        [ viewDressingOption "None" NoDressing
+        , viewDressingOption "Italian" Italian
+        , viewDressingOption "Raspberry Vinaigrette" RaspberryVinaigrette
+        , viewDressingOption "Oil and Vinegar" OilVinegar
+        ]
 
 -- サラダ構成画面
 -- viewBuild は入力イベントが Msg 型の値を生成するので、型注釈は Html msg ではなく Html Msg
@@ -243,116 +322,11 @@ viewBuild model =
     div []
         [ viewError model.error
         , viewSection "1. Select Base"
-            [ label [ class "select-option" ]
-                [ input
-                    [ type_ "radio"
-                    , name "base"
-                    , checked (model.salad.base == Lettuce)
-                    , onClick (SaladMsg (SetBase Lettuce))
-                    ]
-                    []
-                , text "Lettuce"
-                ]
-            , label [ class "select-option" ]
-                [ input
-                    [ type_ "radio"
-                    , name "base"
-                    , checked (model.salad.base == Spinach)
-                    , onClick (SaladMsg (SetBase Spinach))
-                    ]
-                    []
-                , text "Spinach"
-                ]
-            , label [ class "select-option" ]
-                [ input
-                    [ type_ "radio"
-                    , name "base"
-                    , checked (model.salad.base == SpringMix)
-                    , onClick (SaladMsg (SetBase SpringMix))
-                    ]
-                    []
-                , text "Spring Mix"
-                ]
-            ]
+            [ viewSelectBase model.salad.base ]
         , viewSection "2. Select Toppings"
-            [ label [ class "select-option" ]
-                [ input
-                    [ type_ "checkbox"
-                    , checked (Set.member (toppingToString Tomatoes) model.salad.toppings)
-                    {- ToggleTopping は Topping, bool を引数に取るコンストラクタ関数
-                        bool 型は onCheck 時にElmが渡してくれる
-
-                     << で関数合成しているのは、以下のような処理を完結に記述するため
-                     toggleToppingMsg : Topping -> Bool -> Msg
-                     toggleToppingMsg topping add =
-                        SaladMsg (ToggleTopping topping add)
-                    -}
-                    , onCheck (SaladMsg << ToggleTopping Tomatoes)
-                    ]
-                    []
-                , text "Tomatoes"
-                ]
-            , label [ class "select-option" ]
-                [ input
-                    [ type_ "checkbox"
-                    , checked (Set.member (toppingToString Cucumbers) model.salad.toppings)
-                    , onCheck (SaladMsg << ToggleTopping Cucumbers)
-                    ]
-                    []
-                , text "Cucumbers"
-                ]
-            , label [ class "select-option" ]
-                [ input
-                    [ type_ "checkbox"
-                    , checked (Set.member (toppingToString Onions) model.salad.toppings)
-                    , onCheck (SaladMsg << ToggleTopping Onions)
-                    ]
-                    []
-                , text "Onions"
-                ]
-            ]
+            [ viewSelectToppings model.salad.toppings ]
         , viewSection "3. Select Dressing"
-            [ label [ class "select-option" ]
-                [ input
-                    [ type_ "radio"
-                    , name "dressing"
-                    , checked (model.salad.dressing == NoDressing)
-                    , onClick (SaladMsg (SetDressing NoDressing))
-                    ]
-                    []
-                , text "None"
-                ]
-            , label [ class "select-option" ]
-                [ input
-                    [ type_ "radio"
-                    , name "dressing"
-                    , checked (model.salad.dressing == Italian)
-                    , onClick (SaladMsg (SetDressing Italian))
-                    ]
-                    []
-                , text "Italian"
-                ]
-            , label [ class "select-option" ]
-                [ input
-                    [ type_ "radio"
-                    , name "dressing"
-                    , checked (model.salad.dressing == RaspberryVinaigrette)
-                    , onClick (SaladMsg (SetDressing RaspberryVinaigrette))
-                    ]
-                    []
-                , text "Raspberry Vinaigrette"
-                ]
-            , label [ class "select-option" ]
-                [ input
-                    [ type_ "radio"
-                    , name "dressing"
-                    , checked (model.salad.dressing == OilVinegar)
-                    , onClick (SaladMsg (SetDressing OilVinegar))
-                    ]
-                    []
-                , text "Oil and Vinegar"
-                ]
-            ]
+            [ viewSelectDressing model.salad.dressing ]
         , viewSection "4. Enter Contact Info"
             [ div [ class "text-input" ]
                 [ label []
