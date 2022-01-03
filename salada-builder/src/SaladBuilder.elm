@@ -105,6 +105,23 @@ type alias Salad =
     }
 
 
+-- 拡張可能レコード
+{-
+    他言語でいう「インターフェイス」に相当するもの.
+    先頭の `{ c |` という構文は定義しているフィールドを含むすべての型を総称して `c` という名前を付けている.
+    また `c` は小文字なので型変数.
+    この型変数は型エイリアスの定義の左辺にも含めて `type alias Contact c` のように宣言する必要がある.
+
+    インターフェイスなので、I/Fを満たす具体的な型fooを受け取るひつようがあるため、使用時には Contact c のように型変数が必須
+-}
+type alias Contact c =
+    { c
+        | name : String
+        , email : String
+        , phone : String
+    }
+
+
 type alias Model =
     { building : Bool
     , sending : Bool
@@ -340,7 +357,12 @@ viewBuild model =
                     , input
                         [ type_ "text"
                         , value model.name
-                        , onInput SetName
+                        {-
+                            力欄にユーザーが実際に文字を入力すると、Elm が String 型の値を onInput の
+                            引数に渡してくれる。その後 << 演算子によって、Elm が渡した String 型の値を
+                            SetName にくっつけたものが ContactMsg に渡される。
+                        -}
+                        , onInput (ContactMsg << SetName)
                         ]
                         []
                     ]
@@ -351,7 +373,7 @@ viewBuild model =
                     , input
                         [ type_ "text"
                         , value model.email
-                        , onInput SetEmail
+                        , onInput (ContactMsg << SetEmail)
                         ]
                         []
                     ]
@@ -362,7 +384,7 @@ viewBuild model =
                     , input
                         [ type_ "text"
                         , value model.phone
-                        , onInput SetPhone
+                        , onInput (ContactMsg << SetPhone)
                         ]
                         []
                     ]
@@ -448,11 +470,15 @@ type SaladMsg
     | ToggleTopping Topping Bool
     | SetDressing Dressing
 
-type Msg
-    = SaladMsg SaladMsg -- コンストラクタ名`SaladMsg` 引数の型`SaladMsg`
-    | SetName String
+
+type ContactMsg
+    = SetName String
     | SetEmail String
     | SetPhone String
+
+type Msg
+    = SaladMsg SaladMsg -- コンストラクタ名`SaladMsg` 引数の型`SaladMsg`
+    | ContactMsg ContactMsg -- 拡張可能レコードを使う
     | Send
     | SubmissionResult (Result Http.Error String)
 
@@ -501,6 +527,17 @@ updateSalad msg salad =
             { salad | toppings = updater (toppingToString topping) salad.toppings }
 
 
+updateContact : ContactMsg -> Contact c -> Contact c
+updateContact msg contact =
+    case msg of
+        SetName name ->
+            { contact | name = name }
+        SetEmail email ->
+            { contact | email = email }
+        SetPhone phone ->
+            { contact | phone = phone }
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -508,18 +545,8 @@ update msg model =
             ( { model | salad = updateSalad saladMsg model.salad }
             , Cmd.none )
 
-        SetName name ->
-            ( { model | name = name }
-            , Cmd.none
-            )
-
-        SetEmail email ->
-            ( { model | email = email }
-            , Cmd.none
-            )
-
-        SetPhone phone ->
-            ( { model | phone = phone }
+        ContactMsg contactMsg ->
+            ( updateContact contactMsg model
             , Cmd.none
             )
 
