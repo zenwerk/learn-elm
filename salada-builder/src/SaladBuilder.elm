@@ -313,6 +313,31 @@ viewSelectDressing currentDressing =
         , viewDressingOption "Oil and Vinegar" OilVinegar
         ]
 
+
+-- テキスト入力汎用化関数
+viewTextInput : String -> String -> (String -> msg) -> Html msg
+viewTextInput inputLabel inputValue tagger =
+    div [ class "text-input" ]
+        [ label []
+            [ div [] [ text (inputLabel ++ ":") ]
+            , input
+                [ type_ "text"
+                , value inputValue
+                , onInput tagger
+                ]
+                []
+            ]
+        ]
+
+
+viewContact : Contact a -> Html ContactMsg
+viewContact contact =
+    div []
+        [ viewTextInput "Name" contact.name SetName
+        , viewTextInput "Email" contact.email SetEmail
+        , viewTextInput "Phone" contact.phone SetPhone
+        ]
+
 -- サラダ構成画面
 -- viewBuild は入力イベントが Msg 型の値を生成するので、型注釈は Html msg ではなく Html Msg
 -- 他の viewFoo と違い `Html Msg` とあるので、このviewだけがメッセージを返すということが、型定義から読み取れる
@@ -328,44 +353,18 @@ viewBuild model =
         , viewSection "3. Select Dressing"
             [ viewSelectDressing model.salad.dressing ]
         , viewSection "4. Enter Contact Info"
-            [ div [ class "text-input" ]
-                [ label []
-                    [ div [] [ text "Name:" ]
-                    , input
-                        [ type_ "text"
-                        , value model.name
-                        {-
-                            力欄にユーザーが実際に文字を入力すると、Elm が String 型の値を onInput の
-                            引数に渡してくれる。その後 << 演算子によって、Elm が渡した String 型の値を
-                            SetName にくっつけたものが ContactMsg に渡される。
-                        -}
-                        , onInput (ContactMsg << SetName)
-                        ]
-                        []
-                    ]
-                ]
-            , div [ class "text-input" ]
-                [ label []
-                    [ div [] [ text "Email:" ]
-                    , input
-                        [ type_ "text"
-                        , value model.email
-                        , onInput (ContactMsg << SetEmail)
-                        ]
-                        []
-                    ]
-                ]
-            , div [ class "text-input" ]
-                [ label []
-                    [ div [] [ text "Phone:" ]
-                    , input
-                        [ type_ "text"
-                        , value model.phone
-                        , onInput (ContactMsg << SetPhone)
-                        ]
-                        []
-                    ]
-                ]
+            [
+            {-
+                viewContact は ContactMsg(値) を返すが viewBuild は Html Msg を期待するのでコンパイルできない
+                よって Html.map で ContactMsg(コンストラクタ) でラップして Html Msg に変換してコンパイルできるようにする
+
+                Html型をリスト型のデータ構造と捉えると、以下のようなイメージ
+                List.map ContactMsg [ SetName "Jeremy", SetEmail "j@example.com" ]
+                    returns [ ContactMsg (SetName "Jeremy")
+                            , ContactMsg (SetEmail "j@example.com")
+                            ]
+            -}
+              Html.map ContactMsg (viewContact model)
             , button
                 [ class "send-button"
                 , disabled (not (isValid model))
