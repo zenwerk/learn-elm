@@ -13,7 +13,8 @@ import Json.Decode exposing (succeed) -- on で受け取るイベントハンド
 
 -- START:model
 type alias Model =
-    { images : List Image }
+    { imageUploaderId : String
+    , images : List Image }
 -- END:model
 
 type alias Image =
@@ -21,9 +22,9 @@ type alias Image =
 
 
 -- START:init
-init : () -> ( Model, Cmd Msg )
-init () =
-    ( Model [], Cmd.none )
+init : Flags -> ( Model, Cmd Msg )
+init flags =
+    ( Model flags.imageUploaderId flags.images, Cmd.none )
 -- END:init
 
 
@@ -31,10 +32,10 @@ init () =
 view : Model -> Html Msg
 view model =
     div [ class "image-upload" ]
-        [ label [ for "file-upload" ]
+        [ label [ for model.imageUploaderId ]
             [ text "+ Add Images" ]
         , input
-            [ id "file-upload"
+            [ id model.imageUploaderId
             , type_ "file"
             , multiple True
             , onChange UploadImages -- プロンプトからファイル選択時にイベントを発火し UploadImages が update に渡る
@@ -104,6 +105,11 @@ onChange msg =
     on "change" (succeed msg)
 
 
+type alias Flags =
+    { imageUploaderId : String
+    , images : List Image
+    }
+
 -- START:subscriptions
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -113,7 +119,7 @@ subscriptions model =
 
 
 -- START:main
-main : Program () Model Msg
+main : Program Flags Model Msg
 main =
     Browser.element
         { init = init

@@ -12,6 +12,8 @@ import React, { Component } from 'react';
 import { Elm } from './ImageUpload.elm';
 import './ImageUpload.css';
 
+const IMAGE_UPLOADER_ID = 'file-upload';
+
 class ImageUpload extends Component {
   constructor(props) {
     super(props);
@@ -23,6 +25,10 @@ class ImageUpload extends Component {
     this.elm = Elm.ImageUpload.init({
       // Elm の画像アップロード機能を elmRef.current が保持する実際のDOMにElmアプリを初期化
       node: this.elmRef.current,
+      flags: {
+        imageUploaderId: IMAGE_UPLOADER_ID,
+        images: this.props.images,
+      }
     });
 
     // Elmからの外向きポートを購読する
@@ -40,7 +46,7 @@ class ImageUpload extends Component {
   }
 
   readImages = () => {
-    const element = document.getElementById('file-upload');
+    const element = document.getElementById(IMAGE_UPLOADER_ID);
     // Elm は files プロパティを扱えないので、JS側でいじる必要がある
     const files = Array.from(element.files);
 
