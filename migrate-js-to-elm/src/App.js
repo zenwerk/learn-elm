@@ -14,6 +14,8 @@ class App extends Component {
   constructor(props) {
     super(props);
 
+    this.addImages = this.addImages.bind(this);
+
     this.state = {
       note: this.fetchSavedNote(),
     };
@@ -27,6 +29,7 @@ class App extends Component {
     return {
       title: '',
       contents: '',
+      images: [],
       ...note,
     };
   }
@@ -52,6 +55,10 @@ class App extends Component {
     return (e) => {
       this.update(field, e.target.value);
     };
+  }
+
+  addImages(images) {
+    this.update('images', this.state.note.images.concat(images));
   }
 
   render() {
@@ -83,7 +90,10 @@ class App extends Component {
 
           <div className={`note__images`}>
             <h2>Images</h2>
-            <ImageUpload />
+            <ImageUpload
+                images={note.images}
+                onUpload={this.addImages}
+            />
           </div>
         </div>
       </div>

@@ -24,7 +24,37 @@ class ImageUpload extends Component {
       // Elm の画像アップロード機能を elmRef.current が保持する実際のDOMにElmアプリを初期化
       node: this.elmRef.current,
     });
+
+    // Elmからの外向きポートを購読する
+    // 引数にはElmからデータを受け取ったときに呼ばれるコールバック関数を指定する
+    this.elm.ports.uploadImages.subscribe(this.readImages);
   }
+
+  componentWillUnmount() {
+    this.elm.ports.uploadImages.unsubscribe(this.readImages);
+  }
+
+  readImages = () => {
+    const element = document.getElementById('file-upload');
+    // Elm は files プロパティを扱えないので、JS側でいじる必要がある
+    const files = Array.from(element.files);
+
+    Promise.all(files.map(this.readImage)).then(this.props.onUpload);
+  }
+
+  readImage = (file) => {
+    const reader = new FileReader();
+    const promise = new Promise((resolve) => {
+      reader.onload = (e) => {
+        resolve({
+          url: e.target.result,
+        });
+      };
+    });
+    reader.readAsDataURL(file);
+    return promise;
+  }
+
   render() {
     // 仮想div にエルムアプリをマウント
     /*
