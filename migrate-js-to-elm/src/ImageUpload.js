@@ -30,6 +30,11 @@ class ImageUpload extends Component {
     this.elm.ports.uploadImages.subscribe(this.readImages);
   }
 
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    // アップロードされて受け取った画像を Elm 側へ送信して表示させる
+    this.elm.ports.receiveImages.send(this.props.images);
+  }
+
   componentWillUnmount() {
     this.elm.ports.uploadImages.unsubscribe(this.readImages);
   }
