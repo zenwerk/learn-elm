@@ -7,6 +7,7 @@
  * Visit http://www.pragmaticprogrammer.com/titles/jfelm for more book information.
 ***/
 import React, { Component } from 'react';
+import ImageUpload from "./ImageUpload";
 import './App.css';
 
 class App extends Component {
@@ -78,6 +79,11 @@ class App extends Component {
               value={note.contents}
               onChange={this.updateField('contents')}
             />
+          </div>
+
+          <div className={`note__images`}>
+            <h2>Images</h2>
+            <ImageUpload />
           </div>
         </div>
       </div>
