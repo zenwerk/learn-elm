@@ -10,6 +10,8 @@ import Test.Html.Query as Query
 import Test.Html.Selector exposing (attribute, id, tag, text)
 import Html.Attributes exposing (type_, value) -- 検索に使うため
 
+-- viewから発行されるイベントをテストする
+import Test.Html.Event as Event
 
 selectedDate : Date
 selectedDate =
@@ -91,7 +93,24 @@ testView =
 
 testEvents : Test
 testEvents =
-    todo "implement event tests"
+    describe "events"
+        [ test "receives selected date changes" <|
+            -- 変更された日付をちゃんと受け取っている
+            \_ ->
+                App.view initialModel
+                    |> Query.fromHtml
+                    |> Query.find [ tag "input", attribute (type_ "date") ] -- 日付入力欄を検索する
+                    |> Event.simulate (Event.input "2015-09-21") -- simulate関数で onInput イベントをシミュレートする
+                    |> Event.expect (selectDate futureDate) -- 発行されたイベントが期待したものかチェックする
+        , test "receive years offset changes" <|
+            -- years を変更したイベント
+            \_ ->
+                App.view initialModel
+                    |> Query.fromHtml
+                    |> Query.find [id "offset-years"]
+                    |> Event.simulate (Event.input "3")
+                    |> Event.expect (changeDateOffset App.Years 3)
+        ]
 
 
 suite : Test
