@@ -158,6 +158,10 @@ view model =
 
 
 -- START:type.Msg
+{-
+    モデルの years,months,days フィールドのいずれかを表現するカスタム型
+    これを `ChangeDateOffset` の引数に渡すことで、どの入力欄が変更されたかを表現する
+-}
 type DateOffsetField
     = Years
     | Months
@@ -165,8 +169,8 @@ type DateOffsetField
 
 
 type Msg
-    = SelectDate (Maybe Date)
-    | ChangeDateOffset DateOffsetField (Maybe Int)
+    = SelectDate (Maybe Date) -- 画面左側の日付選択Msg | パースに失敗する可能性があるので Maybe
+    | ChangeDateOffset DateOffsetField (Maybe Int) -- 画面右側のoffset変更Msg
 -- END:type.Msg
 
 
