@@ -59,7 +59,7 @@ viewDateInput onChange date =
 
 viewTableRow : String -> String -> String -> Html msg
 viewTableRow identifier label value =
-    tr [ id identifier ]
+    tr [ id identifier ] -- id="..." 要素を付与する
         [ th [] [ text label ]
         , td [] [ text value ]
         ]

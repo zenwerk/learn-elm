@@ -5,6 +5,11 @@ import AwesomeDate as Date exposing (Date)
 import Expect
 import Test exposing (..)
 
+-- view関数をテストするための仮想DOM検索関数たちを import する
+import Test.Html.Query as Query
+import Test.Html.Selector exposing (attribute, id, tag, text)
+import Html.Attributes exposing (type_, value) -- 検索に使うため
+
 
 selectedDate : Date
 selectedDate =
@@ -66,7 +71,22 @@ testUpdate =
 
 testView : Test
 testView =
-    todo "implement view tests"
+    describe "view"
+        [ test "display the selected date" <|
+            -- 選択された日付がちゃんと表示されているか
+            \_ ->
+                App.view initialModel -- view関数にモデルを渡して仮想DOMが返される
+                    |> Query.fromHtml -- Elmの仮想DOMを検索可能な形式に変換する関数
+                    |> Query.find [ tag "input", attribute (type_ "date") ] -- セレクタのリストを受け取って検索する
+                    |> Query.has [ attribute (value "2012-06-02") ] -- ある要素がセレクタのリストを全て満たしているかチェックする
+        , test "display the weekday" <|
+            -- 曜日がちゃんと表示されているか
+            \_ ->
+                App.view initialModel
+                    |> Query.fromHtml
+                    |> Query.find [ id "info-weekday" ] -- id を手がかりにして要素を検索
+                    |> Query.has [ text "Saturday" ]
+        ]
 
 
 testEvents : Test
