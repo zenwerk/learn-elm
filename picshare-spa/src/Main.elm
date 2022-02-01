@@ -1,5 +1,7 @@
 module Main exposing (main)
 
+import Account
+
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Navigation
 import Html exposing (Html, a, div, h1, i, text)
@@ -18,7 +20,7 @@ import Url exposing (Url)
 -}
 type Page
     = PublicFeed -- 写真フィード表示ページ
-    | Account
+    | Account Account.Model
     | NotFound
 
 -- Navigation.Key はブラウザ側でURLの変更がなされた際に使うキー
@@ -62,9 +64,10 @@ viewContent page =
             ( "Picshare"
             , h1 [] [ text "Public Feed" ]
             )
-        Account ->
+        Account accountModel ->
             ( "Account"
-            , h1 [] [ text "Account" ]
+            , Account.view accountModel
+                |> Html.map AccountMsg -- Account.Msg を Main.Msg に変換する必要がある
             )
         NotFound ->
             ( "Not Found"
@@ -90,6 +93,10 @@ type Msg
     -- メッセージでURLの変化を扱う
     = NewRoute (Maybe Routes.Route)
     | Visit UrlRequest
+    {-
+        AccountコンポーネントのMsgを使うためにラップするコンストラクタを追加する
+    -}
+    | AccountMsg Account.Msg
 
 
 {-
@@ -101,16 +108,31 @@ setNewPage maybeRoute model =
         Just Routes.Home ->
             ( { model | page = PublicFeed }, Cmd.none )
         Just Routes.Account ->
-            ( { model | page = Account }, Cmd.none )
+            let
+                ( accountModel, accountCmd ) = Account.init
+            in
+            ( { model | page = Account accountModel }
+            -- Account.Msg をラップして Main.Msg を返す
+            , Cmd.map AccountMsg accountCmd
+            )
         Nothing ->
             ( { model | page = NotFound }, Cmd.none )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        NewRoute maybeRoute ->
+    case (msg, model.page) of -- Msg と現在のページの状態でマッチさせる
+        (NewRoute maybeRoute, _) -> -- ページ遷移に現在のページは関係ないので _ で無視
             setNewPage maybeRoute model
+        -- AccountMsgかつ現在のページがAccountのときのみマッチする、これによってパターンマッチの簡略化 + 無駄なAccountMsgの処理を防ぐ
+        (AccountMsg accountMsg, Account accountModel) ->
+            let
+                ( updatedAccountModel, accountCmd ) =
+                    Account.update accountMsg accountModel -- コンポーネントの update を呼び出し結果を保存
+            in
+            ( { model | page = Account updatedAccountModel }
+            , Cmd.map AccountMsg accountCmd
+            )
         _ ->
             ( model, Cmd.none )
 

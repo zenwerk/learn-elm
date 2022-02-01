@@ -1,6 +1,5 @@
-module Account exposing (main)
+module Account exposing (Model, Msg, init, update, view)
 
-import Browser
 import Html exposing (Html, button, div, h2, img, input, label, span, text, textarea)
 import Html.Attributes exposing (class, disabled, for, id, src, type_, value)
 import Html.Events exposing (onClick, onInput)
@@ -58,8 +57,9 @@ initialModel =
     }
 
 
-init : () -> ( Model, Cmd Msg )
-init () =
+-- Unit型は必要ないので削除する
+init : ( Model, Cmd Msg )
+init  =
     ( initialModel, fetchAccount )
 
 
@@ -287,6 +287,8 @@ update msg model =
             )
 
 
+-- コンポーネントにmainは必要ない
+{-
 main : Program () Model Msg
 main =
     Browser.element
@@ -295,3 +297,4 @@ main =
         , update = update
         , subscriptions = always Sub.none
         }
+-}
