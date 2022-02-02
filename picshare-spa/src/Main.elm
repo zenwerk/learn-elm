@@ -1,6 +1,7 @@
 module Main exposing (main)
 
 import Account
+import Feed as PublicFeed
 
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Navigation
@@ -19,7 +20,7 @@ import Url exposing (Url)
     Routes は URL と表示するページの対応可能を表すものなので別
 -}
 type Page
-    = PublicFeed -- 写真フィード表示ページ
+    = PublicFeed PublicFeed.Model -- 写真フィード表示ページ
     | Account Account.Model
     | NotFound
 
@@ -60,9 +61,10 @@ init () url navigationKey =
 viewContent : Page -> (String, Html Msg)
 viewContent page =
     case page of
-        PublicFeed ->
+        PublicFeed publicFeedModel ->
             ( "Picshare"
-            , h1 [] [ text "Public Feed" ]
+            , PublicFeed.view publicFeedModel
+                |> Html.map PublicFeedMsg
             )
         Account accountModel ->
             ( "Account"
@@ -97,6 +99,8 @@ type Msg
         AccountコンポーネントのMsgを使うためにラップするコンストラクタを追加する
     -}
     | AccountMsg Account.Msg
+    -- FeedもAccountコンポーネントと同様
+    | PublicFeedMsg PublicFeed.Msg
 
 
 {-
@@ -106,7 +110,12 @@ setNewPage : Maybe Routes.Route -> Model -> ( Model, Cmd Msg)
 setNewPage maybeRoute model =
     case maybeRoute of
         Just Routes.Home ->
-            ( { model | page = PublicFeed }, Cmd.none )
+            let
+                ( publicFeedModel, publicFeedCmd ) = PublicFeed.init ()
+            in
+            ( { model | page = PublicFeed publicFeedModel }
+            , Cmd.map PublicFeedMsg publicFeedCmd
+            )
         Just Routes.Account ->
             let
                 ( accountModel, accountCmd ) = Account.init
@@ -133,13 +142,25 @@ update msg model =
             ( { model | page = Account updatedAccountModel }
             , Cmd.map AccountMsg accountCmd
             )
+        ( PublicFeedMsg publicFeedMsg, PublicFeed publicFeedModel ) ->
+            let
+                ( updatedPublicFeedModel, publicFeedCmd ) = PublicFeed.update publicFeedMsg publicFeedModel
+            in
+            ( { model | page = PublicFeed updatedPublicFeedModel }
+            , Cmd.map PublicFeedMsg publicFeedCmd
+            )
         _ ->
             ( model, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    case model.page of
+        PublicFeed publicFeedModel ->
+            PublicFeed.subscriptions publicFeedModel
+                |> Sub.map PublicFeedMsg
+        _ ->
+            Sub.none
 
 
 
