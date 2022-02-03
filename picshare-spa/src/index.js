@@ -27,6 +27,16 @@ function listen(url) {
   }
 }
 
+// WebSocket を閉じるネイティブJS関数を定義し、それを closeポートのsubscribeに渡す
+app.ports.close.subscribe(close);
+function close() {
+  // wsサーバーとの接続を閉じる
+  if (socket) {
+    socket.close();
+    socket = null;
+  }
+}
+
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.
 // Learn more about service workers: https://bit.ly/CRA-PWA

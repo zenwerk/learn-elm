@@ -2,6 +2,7 @@ module Main exposing (main)
 
 import Account
 import Feed as PublicFeed
+import WebSocket
 
 import Browser
 import Browser exposing (Document, UrlRequest)
@@ -148,7 +149,15 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case (msg, model.page) of -- Msg と現在のページの状態でマッチさせる
         (NewRoute maybeRoute, _) -> -- ページ遷移に現在のページは関係ないので _ で無視
-            setNewPage maybeRoute model
+            let
+                ( updatedModel, cmd ) = setNewPage maybeRoute model
+            in
+            ( updatedModel
+            -- Cmd.batch で一度の複数のコマンドをTEAアプリに発行できる
+            -- WebSocket.close で画面遷移字にwsをちゃんと閉じる
+            , Cmd.batch [ cmd, WebSocket.close () ]
+            )
+
         -- AccountMsgかつ現在のページがAccountのときのみマッチする、これによってパターンマッチの簡略化 + 無駄なAccountMsgの処理を防ぐ
         (AccountMsg accountMsg, Account accountModel) ->
             let
@@ -158,6 +167,7 @@ update msg model =
             ( { model | page = Account updatedAccountModel }
             , Cmd.map AccountMsg accountCmd
             )
+
         ( PublicFeedMsg publicFeedMsg, PublicFeed publicFeedModel ) ->
             let
                 ( updatedPublicFeedModel, publicFeedCmd ) = PublicFeed.update publicFeedMsg publicFeedModel
@@ -165,6 +175,7 @@ update msg model =
             ( { model | page = PublicFeed updatedPublicFeedModel }
             , Cmd.map PublicFeedMsg publicFeedCmd
             )
+
         ( Visit (Browser.Internal url), _) -> -- Internal で内部URLのみにマッチさせる
             -- Navigation.pushUrl関数で Cmd を生成する
             {-
