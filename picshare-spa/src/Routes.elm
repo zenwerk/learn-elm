@@ -1,13 +1,32 @@
-module Routes exposing (..)
+module Routes exposing (Route(..), href, match)
 
 -- URLをいい感じに扱うモジュールをインポート
 import Url exposing (Url)
 import Url.Parser as Parser exposing (Parser)
 
+-- 画面遷移のため必要な pushState 操作関連のためインポート
+import Html
+import Html.Attributes
+
+
 -- SPAのルート情報を定義するヴァリアント
 type Route
     = Home
     | Account
+
+
+routeToUrl : Route -> String
+routeToUrl route =
+    case route of
+        Home ->
+            "/"
+        Account ->
+            "/account"
+
+
+href : Route -> Html.Attribute msg
+href route =
+    Html.Attributes.href (routeToUrl route)
 
 
 {-

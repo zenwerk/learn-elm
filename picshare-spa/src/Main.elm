@@ -3,6 +3,7 @@ module Main exposing (main)
 import Account
 import Feed as PublicFeed
 
+import Browser
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Navigation
 import Html exposing (Html, a, div, h1, i, text)
@@ -55,6 +56,21 @@ init () url navigationKey =
 ---- VIEW ----
 
 {-
+    共通ヘッダ
+-}
+viewHeader : Html Msg
+viewHeader =
+    div [ class "header" ]
+        [ div [ class "header-nav" ]
+            [ a [ class "nav-brand", Routes.href Routes.Home ]
+                [ text "Picshare" ]
+            , a [ class "nav-account", Routes.href Routes.Account ]
+                [ i [ class "fa fa-2x fa-gear" ] [] ]
+            ]
+        ]
+
+
+{-
     Document 型は body だけれはなく title も設定できる
     最初の String は <title> を設定するための値
 -}
@@ -83,7 +99,7 @@ view model =
         ( title, content) = viewContent model.page
     in
     { title = title
-    , body = [ content ]
+    , body = [ viewHeader, content ]
     }
 
 
@@ -149,6 +165,14 @@ update msg model =
             ( { model | page = PublicFeed updatedPublicFeedModel }
             , Cmd.map PublicFeedMsg publicFeedCmd
             )
+        ( Visit (Browser.Internal url), _) -> -- Internal で内部URLのみにマッチさせる
+            -- Navigation.pushUrl関数で Cmd を生成する
+            {-
+                onUrlRequest で Visit が発火した結果の Internal url を pushUrl関数経由で history.pushState を操作する
+                pushStateがブラウザのURLを変更すると、onUrlChangeが発火し現在のルート情報を NewRoute で包んで update関数へ渡す
+                updateが画面内容を更新する
+            -}
+            ( model, Navigation.pushUrl model.navigationKey (Url.toString url) )
         _ ->
             ( model, Cmd.none )
 
