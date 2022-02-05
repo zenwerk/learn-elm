@@ -1,7 +1,8 @@
 module Main exposing (main)
 
 import Account
-import Feed as PublicFeed
+import PublicFeed
+import UserFeed
 import WebSocket
 
 import Browser
@@ -23,6 +24,7 @@ import Url exposing (Url)
 -}
 type Page
     = PublicFeed PublicFeed.Model -- 写真フィード表示ページ
+    | UserFeed String UserFeed.Model -- ユーザーページ
     | Account Account.Model
     | NotFound
 
@@ -83,6 +85,11 @@ viewContent page =
             , PublicFeed.view publicFeedModel
                 |> Html.map PublicFeedMsg
             )
+        UserFeed username userFeedModel ->
+            ( "User Feed for @" ++ username
+            , UserFeed.view userFeedModel
+                |> Html.map UserFeedMsg
+            )
         Account accountModel ->
             ( "Account"
             , Account.view accountModel
@@ -118,6 +125,7 @@ type Msg
     | AccountMsg Account.Msg
     -- FeedもAccountコンポーネントと同様
     | PublicFeedMsg PublicFeed.Msg
+    | UserFeedMsg UserFeed.Msg
 
 
 {-
@@ -128,10 +136,17 @@ setNewPage maybeRoute model =
     case maybeRoute of
         Just Routes.Home ->
             let
-                ( publicFeedModel, publicFeedCmd ) = PublicFeed.init ()
+                ( publicFeedModel, publicFeedCmd ) = PublicFeed.init
             in
             ( { model | page = PublicFeed publicFeedModel }
             , Cmd.map PublicFeedMsg publicFeedCmd
+            )
+        Just (Routes.UserFeed username) ->
+            let
+                ( userFeedModel, userFeedCmd ) = UserFeed.init username
+            in
+            ( { model | page = UserFeed username userFeedModel }
+            , Cmd.map UserFeedMsg userFeedCmd
             )
         Just Routes.Account ->
             let
@@ -174,6 +189,14 @@ update msg model =
             in
             ( { model | page = PublicFeed updatedPublicFeedModel }
             , Cmd.map PublicFeedMsg publicFeedCmd
+            )
+
+        (UserFeedMsg userFeedMsg, UserFeed username userFeedModel ) ->
+            let
+                ( updatedUserFeedModel, userFeedCmd) = UserFeed.update userFeedMsg userFeedModel
+            in
+            ( { model | page = UserFeed username updatedUserFeedModel }
+            , Cmd.map UserFeedMsg userFeedCmd
             )
 
         ( Visit (Browser.Internal url), _) -> -- Internal で内部URLのみにマッチさせる

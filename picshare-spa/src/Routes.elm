@@ -2,7 +2,8 @@ module Routes exposing (Route(..), href, match)
 
 -- URLをいい感じに扱うモジュールをインポート
 import Url exposing (Url)
-import Url.Parser as Parser exposing (Parser)
+-- </> は特別に定義された中置演算子
+import Url.Parser as Parser exposing (Parser, (</>))
 
 -- 画面遷移のため必要な pushState 操作関連のためインポート
 import Html
@@ -13,6 +14,7 @@ import Html.Attributes
 type Route
     = Home
     | Account
+    | UserFeed String
 
 
 routeToUrl : Route -> String
@@ -22,6 +24,8 @@ routeToUrl route =
             "/"
         Account ->
             "/account"
+        UserFeed username ->
+            "/user/" ++ username ++ "/feed" -- Url.Builder を使うとよりセキュアになる
 
 
 href : Route -> Html.Attribute msg
@@ -39,6 +43,12 @@ routes =
         [ Parser.map Home Parser.top -- Parser.top("/") を Homeコンストラクタにマッピングする
         -- Parser.s はURLの特定のセグメントを捉える関数
         , Parser.map Account (Parser.s "account") -- "/account" を Accountコンストラクタにマッピングする
+        -- 動的URLのパーサー
+        , Parser.map
+            UserFeed
+            -- </> でパーサーを結合している, Parser.string は動的な文字列を受け取るURLパーサー
+            -- この string が UserFeed String に渡される
+            (Parser.s "user" </> Parser.string </> Parser.s "feed")
         ]
 
 {-
