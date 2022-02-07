@@ -32,6 +32,18 @@ dogNamesFilterMap animals =
                     Nothing
             )
 
+dogNamesFold1 : List Animal -> List String
+dogNamesFold1 animals =
+    animals
+        |> List.foldl
+            (\{name, kind} accume ->
+                if kind == Dog then
+                    accume ++ [name]
+                else
+                    accume
+            )
+            [] -- 空リストが accume の初期値
+
 
 benchmarkAnimals : List Animal
 benchmarkAnimals =
@@ -41,6 +53,8 @@ benchmarkAnimals =
     , Animal "foobar" Dog
     , Animal "misora" Cat
     ]
+        |> List.repeat 10
+        |> List.concat
 
 {-
 suite : Benchmark
@@ -59,8 +73,8 @@ suite =
     [ Benchmark.compare "implementations"
         "filter and map"
         (\_ -> dogNames benchmarkAnimals)
-        "filterMap"
-        (\_ -> dogNamesFilterMap benchmarkAnimals)
+        "foldl"
+        (\_ -> dogNamesFold1 benchmarkAnimals)
     ]
 
 
