@@ -38,11 +38,13 @@ dogNamesFold1 animals =
         |> List.foldl
             (\{name, kind} accume ->
                 if kind == Dog then
-                    accume ++ [name]
+                    -- accume ++ [name] 結合毎に末尾のnil走査をするため遅くなる
+                    name :: accume -- まずは head に追加して
                 else
                     accume
             )
             [] -- 空リストが accume の初期値
+        |> List.reverse -- 最後に反転させる
 
 
 benchmarkAnimals : List Animal
