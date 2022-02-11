@@ -9,6 +9,7 @@ import Html exposing (Html, button, div, h2, input, label, table, tbody, td, tex
 import Html.Attributes exposing (class, classList, disabled, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Http
+import Html.Lazy exposing (lazy, lazy2)
 import Json.Decode as Json
 import Select
 import SortFilter exposing (Order(..), SortBy(..), SortFilter)
@@ -16,7 +17,7 @@ import SortFilter exposing (Order(..), SortBy(..), SortFilter)
 
 url : String
 url =
-    "https://programming-elm.com/animals"
+    "https://programming-elm.com/animals/large"
 
 
 
@@ -279,8 +280,9 @@ viewAnimal animal =
         ]
 
 
-viewAnimalList : State -> Html StateMsg
-viewAnimalList { sortFilter, animals } =
+-- 入力の度にこの関数が呼ばれるので遅い
+viewAnimalList : SortFilter -> List Animal -> Html StateMsg
+viewAnimalList sortFilter animals =
     let
         sortedAndFilteredAnimals =
             sortAndFilterAnimals sortFilter animals
@@ -295,7 +297,7 @@ viewAnimalList { sortFilter, animals } =
                 , th [] []
                 ]
             ]
-        , tbody [] (List.map viewAnimal sortedAndFilteredAnimals)
+        , tbody [] (List.map (lazy viewAnimal) sortedAndFilteredAnimals)
         ]
 
 
@@ -304,7 +306,12 @@ viewAnimals state =
     div [ class "animals" ]
         [ h2 [] [ text "Rescue Me" ]
         , viewAnimalFilters state
-        , viewAnimalList state
+        {-
+            Html.lazyN は引数が変化したときだけ実際に仮想DOMを更新する
+            変化の判断は参照が等しいかどうかで行う.
+            React の shouldCComponentUpdate に近い
+        -}
+        , lazy2 viewAnimalList state.sortFilter state.animals
         ]
 
 
@@ -369,6 +376,7 @@ viewState state =
 view : Model -> Html Msg
 view model =
     case model of
+        -- 起動直後は model の初期値が Nothing なので Loading 表示
         Nothing ->
             div [] [ text "Loading..." ]
 
