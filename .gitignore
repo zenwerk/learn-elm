@@ -3,6 +3,8 @@ elm-stuff
 # elm-repl generated files
 repl-temp-*
 
+bin/*
+
 # compiled output
 /dist
 /tmp
@@ -92,3 +94,5 @@ lerna-debug.log
 # System Files
 .DS_Store
 Thumbs.db
+
+!.gitkeep
