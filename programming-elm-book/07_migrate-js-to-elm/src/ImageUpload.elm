@@ -87,7 +87,7 @@ port uploadImages : () -> Cmd msg
     内向きポートは、受け取るデータについてのデコーダが不要、なんとポートの型定義からElmがデコーダを自動生成する
     画像Listを受け取ってMsgを返す関数を受け取る
 
-    JSから {url : String} なデータが渡ってきてMsgのコンストラクタ関数に渡り、それが Sub Msg になって返される
+    JSから {url : String} なデータが渡ってきてMsgのコンストラクタ関数に渡り、それが Sub Msg になって返されTEAが受け取る
 -}
 port receiveImages : (List Image -> msg) -> Sub msg
 
