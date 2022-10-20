@@ -21,25 +21,25 @@
 
   <script src="picshare.js"></script>
   <script>
-    (function() {
-      var app = Elm.Picshare.init({
-        node: document.getElementById('main')
-      });
+(function() {
+  var app = Elm.Picshare.init({
+    node: document.getElementById('main')
+  });
 
-      // 外向けポートの subscribe 関数を呼び出す
-      app.ports.listen.subscribe(listen);
+  // 外向けポートの subscribe 関数を呼び出す
+  app.ports.listen.subscribe(listen);
 
-      // Elmがサブスクする Js の関数
-      function listen(url) {
-        var socket = new WebSocket(url);
+  // Elmがサブスクする Js の関数
+  function listen(url) {
+    var socket = new WebSocket(url);
 
-        // WebSocketサーバーからのデータを受け取るコールバック
-        socket.onmessage = function(event) {
-          // 受け取ったデータを receive.send で Elm 側へ送信する
-          app.ports.receive.send(event.data);
-        };
-      }
-    })();
+    // WebSocketサーバーからのデータを受け取るコールバック
+    socket.onmessage = function(event) {
+      // 受け取ったデータを receive.send で Elm 側へ送信する
+      app.ports.receive.send(event.data);
+    };
+  }
+})();
   </script>
 </body>
 </html>

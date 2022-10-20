@@ -295,10 +295,9 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
--- START:subscriptions -- 文字列データを受け取るコンストラクタは String -> msg な関数であることを思い出せ
 subscriptions model =
-    WebSocket.receive LoadStreamPhoto -- WSからのストリームをサブスクし、受け取るときは LoadStreamPhoto コンストラクタを返す
--- END:subscriptions
+    -- 文字列データを受け取るコンストラクタは String -> msg な関数である
+    WebSocket.receive LoadStreamPhoto -- WSからのストリームをサブスクし、受け取るときは LoadStreamPhoto コンストラクタに包んで update へ
 
 
 main : Program () Model Msg
