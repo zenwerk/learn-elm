@@ -216,6 +216,8 @@ saveAccount : Account -> Cmd Msg
 saveAccount account =
     let
         body =
+            -- JSONエンコーダの定義
+            -- Elmの型をJSONへ変換する
             Http.jsonBody <|
                 Encode.object
                     [ ( "name", Encode.string account.name )

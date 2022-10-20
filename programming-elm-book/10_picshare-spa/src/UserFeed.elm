@@ -1,3 +1,6 @@
+{-
+    Feed.elm を目的ごとに再利用するため、設定だけを渡して再利用するラッパーモジュールを作成する
+-}
 module UserFeed exposing (Model, Msg, init, update, view)
 
 import Feed

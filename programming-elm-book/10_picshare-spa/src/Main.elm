@@ -21,6 +21,8 @@ import Url exposing (Url)
     `Model` に保存するためのSPAのルート情報
     これは「現在表示されているページ」を表すもの
     Routes は URL と表示するページの対応可能を表すものなので別
+
+    コンストラクタの引数には, そのページに表示させたい状態をもたせる
 -}
 type Page
     = PublicFeed PublicFeed.Model -- 写真フィード表示ページ
@@ -48,7 +50,8 @@ initialModel navigationKey =
 
 {-
     Browser.application は起動時に最初のUrlを渡してくる
-    よって initi は Flag の後に Url, Browser.Navigation.Key を引数にとり Model と Cmd を返す関数に変更しなければならない
+    よって init は Flag の後に Url, Browser.Navigation.Key を引数にとり,
+    その引数を利用し (Model, Cmd) を返す関数である必要がある
 -}
 init : () -> Url -> Navigation.Key -> ( Model, Cmd Msg )
 init () url navigationKey =
@@ -74,7 +77,7 @@ viewHeader =
 
 
 {-
-    Document 型は body だけれはなく title も設定できる
+    Document 型は <body> だけではなく <title> も設定できる
     最初の String は <title> を設定するための値
 -}
 viewContent : Page -> (String, Html Msg)
@@ -92,8 +95,8 @@ viewContent page =
             )
         Account accountModel ->
             ( "Account"
-            , Account.view accountModel
-                |> Html.map AccountMsg -- Account.Msg を Main.Msg に変換する必要がある
+            , Account.view accountModel -- Account.Msg が返り値
+                |> Html.map AccountMsg -- Account.Msg を |> でコンストラクタに渡して Main.Msg に変換する必要がある
             )
         NotFound ->
             ( "Not Found"
@@ -101,6 +104,7 @@ viewContent page =
                 [ h1 [] [ text "Page Not Found"] ]
             )
 
+-- Html msg ではなく Document Msg を返す
 view : Model -> Document Msg
 view model =
     let
@@ -150,10 +154,13 @@ setNewPage maybeRoute model =
             )
         Just Routes.Account ->
             let
+                -- ページ遷移するときにコンポーネントの init を呼び出して (Model, 初期Cmd) を取得する
                 ( accountModel, accountCmd ) = Account.init
             in
             ( { model | page = Account accountModel }
-            -- Account.Msg をラップして Main.Msg を返す
+            -- accountCmd を直接返すと Account.Cmd と Main.Cmd が合わず型エラーになる
+            -- そこで Cmd.map 関数を慶友して Account.Msg をラップして Main.Msg を返す
+            -- map は map-reduce の map だよ
             , Cmd.map AccountMsg accountCmd
             )
         Nothing ->
@@ -199,13 +206,14 @@ update msg model =
             , Cmd.map UserFeedMsg userFeedCmd
             )
 
+        {-
+            aタグなどでリンクが踏まれると onUrlRequest で指定された Visit Msg が発行される
+            発火した結果の Visit Internal.url update でパターンマッチして, その結果を pushUrl関数経由で Cmd を発行する
+            発行された Cmd で TEA が history.pushState を実行しURLが変更される
+            URLを変更されると、続いて onUrlChangeが発火し現在のルート情報を NewRoute で包んで update関数へ渡し, updateのパターンマッチで画面内容を更新し再描画(画面遷移)が完了する
+        -}
         ( Visit (Browser.Internal url), _) -> -- Internal で内部URLのみにマッチさせる
             -- Navigation.pushUrl関数で Cmd を生成する
-            {-
-                onUrlRequest で Visit が発火した結果の Internal url を pushUrl関数経由で history.pushState を操作する
-                pushStateがブラウザのURLを変更すると、onUrlChangeが発火し現在のルート情報を NewRoute で包んで update関数へ渡す
-                updateが画面内容を更新する
-            -}
             ( model, Navigation.pushUrl model.navigationKey (Url.toString url) )
         _ ->
             ( model, Cmd.none )
@@ -227,6 +235,8 @@ subscriptions model =
 
 main : Program () Model Msg
 main =
+    -- Browser.application は Browser.element の機能に加えて
+    -- リンクがクリックされたとき、TEAからBrowserモジュール経由で現在のURLを通知するイベントを発行してくれる
     Browser.application
         { init = init
         , view = view
@@ -234,14 +244,14 @@ main =
         , subscriptions = subscriptions
         -- Browser.application に必要な新しいフィールド2つ
         {-
-            onUrlRequest には UrlRequest をラップするMsgのコンストラクタを渡す
+            onUrlRequest には リンクがクリックされたときにTEAから発行される
+            UrlRequest をラップするMsgのコンストラクタを渡す
         -}
         , onUrlRequest = Visit
         {-
-            ブラウザがURLを変更されると onUrlChange に指定された値を使って「現在のURL」をラップする
-            >> は 左->右へ関数を合成する演算子
-            |> と違うのは (Foo >> Bar) の組み合わせで「一つの関数」になること
+            ブラウザがURLを変更されると onUrlChange に指定された値を使って「変更後のURL」をラップする.
             引数で渡された Url を Routes.match で (Maybe Route) にして NewRoute コンストラクタに渡す
         -}
+        -- >> は 左->右へ関数を合成する演算子, |> と違うのは (Foo >> Bar) の組み合わせで「一つの関数」になること.
         , onUrlChange = Routes.match >> NewRoute
         }

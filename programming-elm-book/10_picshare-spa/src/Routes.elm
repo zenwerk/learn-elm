@@ -40,8 +40,11 @@ href route =
 routes : Parser (Route -> a) a
 routes =
     Parser.oneOf -- URLを順番に試しマッチしたものを適用する関数
-        [ Parser.map Home Parser.top -- Parser.top("/") を Homeコンストラクタにマッピングする
-        -- Parser.s はURLの特定のセグメントを捉える関数
+        [
+        -- Parser.top `/` を Homeコンストラクタに Parser.map でマッピングする
+        -- すると, 現在のパスが '/' にマッチしたら Parser.map は Homeコンストラクタを返すようになる
+        Parser.map Home Parser.top
+        -- Parser.s は指定した文字列を特定のURLセグメントとして捉える関数
         , Parser.map Account (Parser.s "account") -- "/account" を Accountコンストラクタにマッピングする
         -- 動的URLのパーサー
         , Parser.map
@@ -57,4 +60,5 @@ routes =
 match : Url -> Maybe Route
 match url =
     -- Parser.parse は渡されたパーサーを利用して url の path部をパースする
+    -- 定義されたURLなら Just Route, デタラメなURLなら Nothing を返す
     Parser.parse routes url

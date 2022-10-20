@@ -1,3 +1,6 @@
+{-
+    Feed.elm を目的ごとに再利用するため、設定だけを渡して再利用するラッパーモジュールを作成する
+-}
 module PublicFeed exposing (Model, Msg, init, subscriptions, update, view)
 
 import Feed
@@ -41,4 +44,3 @@ update =
 subscriptions : Model -> Sub Msg
 subscriptions =
     Feed.subscriptions
-    
